@@ -21,15 +21,16 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - pip install pytest mypy pylint black
-
+  - pip install -r requirements.txt
+  - pip install -r dev-requirements.txt
+  
 lint:
   script:
-  - find . -iname "*.py" | grep -v venv | xargs pylint -E
-  - black --check
+  - find . -iname "*.py" | fgrep -v venv | xargs pylint --suggestion-mode=n
+  - black --check --exclude="venv" .
 test:
   script:
   - pytest --version
   - pytest -v
   - mypy --version
-  - find . -iname "*.py" | fgrep -v "venv" | fgrep -v "test_" | xargs mypy  # TODO: Move to strict
+  - find . -iname "*.py" | fgrep -v "venv" | fgrep -v "test" | xargs mypy  # TODO: Move to strict
