@@ -1,3 +1,9 @@
-# word_subset.py
+# Pre War Login
+TODO: Description
+python game mimicking fallout terminal hacking
 
-Python Library used to provide select words from a list based on various factors
+TODO: INSTALL
+
+TODO: USE
+
+Convert to RST
