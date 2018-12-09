@@ -17,20 +17,32 @@ cache:
     - venv/
 
 before_script:
-  - python -V
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
   - pip install -r requirements.txt
-  - pip install -r dev-requirements.txt
   
 lint:
   script:
+  - pip install -r dev-requirements.txt
   - find . -iname "*.py" | fgrep -v venv | xargs pylint --suggestion-mode=n
   - black --check --exclude="venv" .
-test:
+
+test_3_6:
+  image: python:3.6 
   script:
-  - pytest --version
-  - pytest -v
-  - mypy --version
-  - find . -iname "*.py" | fgrep -v "venv" | fgrep -v "test" | xargs mypy  # TODO: Move to strict
+  - pip install tox
+  - tox --version
+  - tox -e py36
+
+test_3_7:
+# image: python:3.7  #NOTE:Latest is currently 3.7
+  script:
+  - pip install tox
+  - tox --version
+  - tox -e py37
+
+security:
+ script:
+ - pip install safety
+ - safety check # TODO: -r requirements.txt
