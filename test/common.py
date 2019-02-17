@@ -1,6 +1,4 @@
 """Common testing word list"""
-from typing import List
-
 # word list Breakdown
 # 1: a  (1)
 # 2: go. no, be, by (4)
@@ -16,7 +14,7 @@ from typing import List
 # 12: embezzlement, hyperbolized, racquetballs (3)
 # Over: Supercalifragilisticexpialidocious (1)
 
-LIST_EXAMPLE: List[str] = [
+LIST_EXAMPLE = [
     "a",
     "go",
     "no",

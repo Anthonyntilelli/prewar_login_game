@@ -25,8 +25,8 @@ before_script:
 lint:
   script:
   - pip install -r dev-requirements.txt
-  - find . -iname "*.py" | fgrep -v venv | xargs pylint --suggestion-mode=n
-  - black --check --exclude="venv" .
+  - find . -iname "*.py" | fgrep -v venv | fgrep -v tox  | xargs pylint --suggestion-mode=n
+  - black --check --exclude="venv|.tox" .
 
 test_3_6:
   image: python:3.6 
