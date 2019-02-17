@@ -92,9 +92,10 @@ def test_remove_word():
     """Tests remove_word()"""
     tester = word_subset.WordSubset(3, 5, LIST_EXAMPLE)
     assert "foul" in tester._word_list
-    assert tester.remove_word("foul") is True
+    tester.remove_word("foul")
     assert "foul" not in tester._word_list
-    assert tester.remove_word("squeezing") is False
+    with pytest.raises(ValueError):
+        tester.remove_word("squeezing")
 
 
 def test_correctly__trim_word_list():

@@ -76,13 +76,12 @@ class WordSubset:
         pattern: str = "@" * len(word)
         return self._match_and_remove(self._generate_pattern(word, pattern), amount)
 
-    def remove_word(self, word: str) -> bool:
-        """Removes word from internal list"""
-        try:
-            self._word_list.remove(word)
-        except ValueError:
-            return False
-        return True
+    def remove_word(self, word: str) -> None:
+        """
+        Removes word from internal list
+        raises ValueError is word does not exist in list
+        """
+        self._word_list.remove(word)
 
     def _match_and_remove(self, regex_compiled: Any, count: int) -> List[str]:
         """
