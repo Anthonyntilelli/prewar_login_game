@@ -1,4 +1,4 @@
-"""Common testing word list"""
+"""Common testing word list."""
 # word list Breakdown
 # 1: a  (1)
 # 2: go. no, be, by (4)
@@ -59,4 +59,54 @@ LIST_EXAMPLE = [
     "hyperbolized",
     "racquetballs",
     "Supercalifragilisticexpialidocious",
+]
+
+LIST_EXAMPLE_EASY = [
+    "cry",
+    "fun",
+    "run",
+    "for",
+    "demo",
+    "foul",
+    "wait",
+    "sell",
+    "yeast",
+    "wrong",
+    "water",
+    "skill",
+]
+
+LIST_EXAMPLE_ADVANCED = [
+    "accept",
+    "admire",
+    "bicorn",
+    "biceps",
+    "planks",
+    "bizonal",
+    "biofuel",
+    "bigfoot",
+    "scalene",
+    "mobility",
+    "notebook",
+    "superior",
+    "taxpayer",
+]
+
+LIST_EXAMPLE_EXPERT = [
+    "squeezing",
+    "emphasize",
+    "humanized",
+    "bubblegum",
+    "victimized",
+    "complexity",
+    "nonsubject",
+]
+
+LIST_EXAMPLE_MASTER = [
+    "overcomplex",
+    "conjunction",
+    "pocketknife",
+    "embezzlement",
+    "hyperbolized",
+    "racquetballs",
 ]
