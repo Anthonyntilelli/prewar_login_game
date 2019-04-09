@@ -1,3 +1,6 @@
 pylint
+pydocstyle
 black
-pytest
+mypy
+pytest  # Pytest needed for pylint to run 
+# Run pytest through tox
