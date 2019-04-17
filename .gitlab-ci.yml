@@ -18,17 +18,18 @@ cache:
     - venv/
 
 before_script:
+  - python -V
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
   - pip install -r requirements.txt
-  
+
 code_ style:
   script:
   - pip install -r dev-requirements.txt
   - find . -iname "*.py" | fgrep -v venv | fgrep -v tox  | xargs pylint --suggestion-mode=n
   - black --check --exclude="venv|.tox" .
-  - pydocstyle grid_internal/* -ve
+  - pydocstyle grid/* -ve
   - pydocstyle test/* -ve
   only:
   - merge_requests
@@ -43,9 +44,9 @@ static_type_check:
   - branch
 
 test_3_6:
-  image: python:3.6 
+  image: python:3.6
   script:
-  - pip install tox
+  - pip install tox -U
   - tox --version
   - tox -e py36
   only:
@@ -53,19 +54,29 @@ test_3_6:
   - branches
 
 test_3_7:
-# image: python:3.7  # NOTE:Latest is currently 3.7
+#  image: python:3.7  # NOTE: latest is currently 3.7
   script:
-  - pip install tox
+  - pip install tox -U
   - tox --version
-  - tox -e py37
+  - tox -e py37  # Possible failure when 3.8 is released
   only:
   - merge_request
   - branches
 
+smoke_test:
+  script:
+  - printf "Check if Latest smoke test is same day as commit (run smoke_test.sh on failure)\\n"
+  - cat .smoke_test_results.txt
+  - printf "Last git commit date (UTC) -> %s\\n" "$(git log -1 --format="%at" | xargs -I{} date -u -d @{} --iso-8601)"
+  - grep "Smoke Test PASSED -> $(git log -1 --format="%at" | xargs -I{} date -u -d @{} --iso-8601)" .smoke_test_results.txt
+  only:
+  - merge_request
+  - master
+
 security:
   script:
-  - pip install safety
-  - safety check -r requirements.txt
+  - pip install safety -U
+  - safety check -r requirements.txt  --full-report
   only:
     - merge_requests
     - master
