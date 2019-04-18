@@ -84,8 +84,6 @@ class WordsTools:
         """
         if not self._fpath.exists():
             raise FileExistsError("File does not exist")
-        if not os.access(str(self._fpath), os.R_OK):
-            raise PermissionError("File not readable")
         with self._fpath.open(mode="r") as file_pointer:
             save_data = yaml.safe_load(file_pointer)
         settings = gi_sd.SettingGridFull(
@@ -124,8 +122,6 @@ class WordsTools:
             raise ValueError("Not a valid difficulty")
         if not self._fpath.exists():
             raise FileExistsError("File does not exist")
-        if not os.access(str(self._fpath), os.R_OK):
-            raise PermissionError("File not readable")
         with self._fpath.open(mode="r") as file_pointer:
             save_data = yaml.safe_load(file_pointer)
 
@@ -167,16 +163,13 @@ class WordsTools:
         )
         return settings
 
-    def set_passwords(
-        self, word_subset: List[str], count: int, show_status: bool = False
-    ) -> List[str]:
+    def set_passwords(self, word_subset: List[str], count: int) -> List[str]:
         """
         Find a list of passwords per difficulty for count.
 
         This function is slow especially with larger word sets and counts
         :param word_subset: lists of words
         :param count: number of passwords to try and find
-        :param show_status: print current status (T/F)
         :return: list of passwords per difficulty
         """
         if count <= 0:
@@ -185,21 +178,15 @@ class WordsTools:
             raise ValueError("Word_subset is to small for the count")
         pass_arr = []
         word_subset_cpy = list(word_subset.copy())
-        if show_status:
-            print("starting Run")
         random.shuffle(word_subset_cpy)
         for word in word_subset_cpy:
             result = self.similarity_sort(word_subset_cpy, word)
             if result[1]:
-                if show_status:
-                    print(f"Adding Word: {word} to pass_arr")
                 pass_arr.append(word)
             if len(pass_arr) == count:
                 break
         if len(pass_arr) < count:
             raise RuntimeError("Could Not meet password count")
-        if show_status:
-            print("finished")
         return pass_arr
 
     @staticmethod

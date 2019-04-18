@@ -148,7 +148,7 @@ class Backend:
             feedback_items = word, feedback_action
         elif isinstance(similarity, int):  # dud
             if similarity < 0:
-                raise RuntimeError(f"Incorrect Similarity Value ({similarity})")
+                raise RuntimeError(f"Negative Similarity Value ({similarity})")
             self._tries -= 1
             if self.tries <= 0:  # Game Lost
                 self._state = -1
@@ -159,9 +159,7 @@ class Backend:
                 feedback_items = word, "Entry Denied.", f"Likeness = {similarity}"
                 return_char = "d"
         else:
-            raise RuntimeError(
-                f"Unknown Similarity ({similarity}) -> {type(similarity)}"
-            )
+            raise RuntimeError(f"Unknown Similarity ({similarity}:{type(similarity)})")
 
         for feedback_word in feedback_items:
             self._non_interactive.add_feedback(feedback_word, False)

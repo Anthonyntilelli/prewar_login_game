@@ -27,8 +27,8 @@ before_script:
 code_ style:
   script:
   - pip install -r dev-requirements.txt
-  - find . -iname "*.py" | fgrep -v venv | fgrep -v tox  | xargs pylint --suggestion-mode=n
   - black --check --exclude="venv|.tox" .
+  - find . -iname "*.py" | fgrep -v venv | fgrep -v tox  | xargs pylint --suggestion-mode=n
   - pydocstyle grid/* -ve
   - pydocstyle test/* -ve
   only:

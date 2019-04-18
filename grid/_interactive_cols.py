@@ -259,7 +259,7 @@ class InteractiveCols:
         :return: list of filler lines
         """
         if line_count <= 0:
-            raise ValueError(f"Line_count: {line_count} is zero of less")
+            raise ValueError(f"Line_count: {line_count} is zero or less")
         filler_column: List[InteractiveCols.Line] = []
         for _ in range(line_count):
             line_str: str = ""  # display line

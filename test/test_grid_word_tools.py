@@ -1,5 +1,7 @@
 """Tests grid_internal components using Pytest."""
 import os
+from pathlib import Path
+import getpass
 from test.common import LIST_EXAMPLE, LIST_EXAMPLE_EASY, LIST_EXAMPLE_MASTER
 import pytest  # type: ignore
 import yaml
@@ -15,7 +17,7 @@ from grid.settings import DEFAULT_FULL, DEFAULT_EASY, DifficultyType
 
 @pytest.fixture()
 def move_dir():
-    """Move to correct directory and correct files exist."""
+    """Move to correct directory and assert correct files exist."""
     cwd = os.getcwd()
     if "test/files" not in os.getcwd():  # Move to dir
         os.chdir("./test/files")
@@ -30,12 +32,42 @@ def move_dir():
     os.chdir(cwd)
 
 
-def test__init__exception(move_dir):
+@pytest.fixture()
+def move_and_extended():
+    """Move to correct directory and creates extra files."""
+    cwd = os.getcwd()
+    if "test/files" not in os.getcwd():  # Move to dir
+        os.chdir("./test/files")
+    assert os.path.exists("existing_file.yml")
+    assert os.path.exists("default_test.yml")
+    assert not os.path.exists("NONEXISTANT.yml")
+    assert not os.path.exists("default_test_delete_me.yml")
+    assert not os.path.exists("no_access_delete_me.yml")
+    assert not os.path.exists("no_access_delete_me.yml")
+    no_access = Path("no_access_delete_me.yml")
+    no_access.touch(mode=0o000)
+    os.makedirs("folder_delete_me.yml")
+    yield
+    if os.path.exists("default_test_delete_me.yml"):
+        os.remove("./default_test_delete_me.yml")
+    os.remove("./no_access_delete_me.yml")
+    os.removedirs("folder_delete_me.yml")
+    # Move to original directory
+    os.chdir(cwd)
+
+
+def test__init__exception(move_and_extended):
     """Test init file checks."""
     with pytest.raises(ValueError):
         gi_wst.WordsTools("/dev/zero")
     with pytest.raises(ValueError):
         gi_wst.WordsTools("/etc/shadow")
+    # Gitlab-ci runs as root user
+    if getpass.getuser() != "root":
+        with pytest.raises(PermissionError):
+            gi_wst.WordsTools("no_access_delete_me.yml")
+    with pytest.raises(LookupError):
+        gi_wst.WordsTools("folder_delete_me.yml")
 
 
 def test__init__(move_dir):
@@ -80,6 +112,18 @@ def test_write_settings(move_dir):
     with open(filename) as file_pointer:
         load = yaml.safe_load(file_pointer)
     assert load == dict(DEFAULT_FULL._asdict())
+    # Overide safety
+    with pytest.raises(LookupError):
+        tester.write_settings(DEFAULT_FULL)
+    # Incorrect data to write
+    with pytest.raises(ValueError):
+        tester.write_settings(DEFAULT_EASY, True)
+    # Read-Only File
+    os.chmod(path=filename, mode=0o440)
+    # Gitlab-ci runs as root user
+    if getpass.getuser() != "root":
+        with pytest.raises(PermissionError):
+            tester.write_settings(DEFAULT_FULL, True)
 
 
 def test_load_settings_full(move_dir):
@@ -90,7 +134,7 @@ def test_load_settings_full(move_dir):
     assert value == DEFAULT_FULL
 
 
-def load_settings_diff(move_dir):
+def test_load_settings_diff(move_dir):
     """Test loading of a settings.yml and creation of settings difficulty."""
     filename = "default_test.yml"
     tester = gi_wst.WordsTools(filename)
@@ -98,12 +142,19 @@ def load_settings_diff(move_dir):
     assert value == DEFAULT_EASY
 
 
-def load_settings_diff_exception(move_dir):
-    """Test that load_settings_diff raises expected exception."""
-    filename = "default_test.yml"
-    tester = gi_wst.WordsTools(filename)
+def test_load_settings_exception(move_and_extended):
+    """Test that load_settings_diff/full raises expected exception."""
+    # Diff
+    tester = gi_wst.WordsTools("default_test.yml")
     with pytest.raises(ValueError):
         tester.load_settings_diff("q")
+    tester = gi_wst.WordsTools("NONEXISTANT.yml")
+    with pytest.raises(FileExistsError):
+        tester.load_settings_diff(DifficultyType.EASY)
+    # Full
+    tester = gi_wst.WordsTools("NONEXISTANT.yml")
+    with pytest.raises(FileExistsError):
+        tester.load_settings_full()
 
 
 # Static Methods

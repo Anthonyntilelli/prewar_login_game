@@ -98,8 +98,15 @@ def test_remove_random_dud(comp_advance):
     assert left_diff ^ right_diff  # Only One side is changed
 
 
+def test_select_exception(comp_expert):
+    """Test select_char properly raises exception."""
+    tester = gi_ic.InteractiveCols(comp_expert, 4)
+    with pytest.raises(ValueError):
+        tester.select_char("Invalid", 0, 0)
+
+
 def test_select_error(comp_expert):
-    """Test select_char properly handles errors."""
+    """Test select_char properly handles errors entries."""
     tester = gi_ic.InteractiveCols(comp_expert, 4)
     outer = -1
     inner = -1
@@ -271,11 +278,16 @@ def test_inactivate_secret(comp_expert):
     # Pre REMOVAL
     assert tester._active_col[secret_local[0]][secret_local[1]].similarity == "s"
     old_line = tester._active_col[secret_local[0]][secret_local[1]].line
+    # REMOVAL
+    with pytest.raises(ValueError):
+        assert tester.inactivate_secret(secret_local[0], secret_local[1])
     assert tester.inactivate_secret(bool(secret_local[0]), secret_local[1])
     # Post REMOVAL
     new_line = tester._active_col[secret_local[0]][secret_local[1]].line
     assert new_line == old_line
     assert tester._active_col[secret_local[0]][secret_local[1]].similarity == "e"
+    # RETRY REMOVAL (NO CHANGE)
+    assert not tester.inactivate_secret(bool(secret_local[0]), secret_local[1])
 
 
 # Private Method
@@ -316,6 +328,8 @@ def test__filler_lines(comp_easy):
         assert isinstance(line, tester.Line)
         assert line.similarity == "e"
         assert len(line.line) == comp_easy.setting.ACTIVE_LINE_SIZE
+    with pytest.raises(ValueError):
+        tester._filler_lines(-1)
 
 
 def test_line_named_tuple():
