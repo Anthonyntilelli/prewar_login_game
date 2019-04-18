@@ -51,6 +51,7 @@ def test__init__(settings_easy, settings_advanced, settings_expert, settings_mas
         assert tester.tries == 4
         assert tester._tries_original == 4
         assert tester.game_state == 0
+        assert tester.settings == setting
 
 
 def test_full_row_str(settings_easy):
@@ -69,6 +70,8 @@ def test_full_row_str(settings_easy):
     assert tester.full_row_str(5)[-14:] == tester._non_interactive.feedback_col[5]
     with pytest.raises(IndexError):
         tester.full_row_str(99)
+    with pytest.raises(IndexError):
+        tester.full_row_str(-1)
 
 
 def test_hover(settings_advanced):
@@ -195,7 +198,9 @@ def test_select_dud_entry_game_over(settings_advanced):
         assert tester.tries == 4 - count
 
 
-def test_select_secret_entry_secret(settings_advanced):
+# Run multiple time to attempt to get both dud and tries Reset
+@pytest.mark.parametrize("_", [1, 2, 3])
+def test_select_secret_entry_secret(settings_advanced, _):
     """Ensure select action on secret when selected correctly."""
     tester = Backend(settings_advanced, ewlaps, 4, True)
     location = find_entry("s", tester)
