@@ -14,7 +14,7 @@ set -euo pipefail
 
 # CONSTANTS
 readonly WORKING_DIR="/tmp/smoke"
-readonly FILE_RESULT=".smoke_test_results.txt"
+readonly FILE_RESULT="test/smoke_test_results.txt"
 
 # FUNCTIONS
 function fail() {
@@ -79,13 +79,13 @@ function main() {
 
   # Smoke tests
   python app_curses.py -h > /dev/null # help
-  echo -ne 'q' | python app_curses.py -e > /dev/null # Easy
-  echo -ne 'q' | python app_curses.py -da > /dev/null # Advanced (with extra difficulty)
-  echo -ne 'q' | python app_curses.py -E -t 5 > /dev/null # Expert (Non-default tries)
-  echo -ne 'q' | python app_curses.py -m > /dev/null # Master
+  echo -ne 'q' | python app_curses.py easy > /dev/null # Easy
+  echo -ne 'q' | python app_curses.py advanced -s > /dev/null # Advanced (with extra difficulty)
+  echo -ne 'q' | python app_curses.py expert -t 5 > /dev/null # Expert (Non-default tries)
+  echo -ne 'q' | python app_curses.py master > /dev/null # Master
 
   # ALL tests passed
-  printf "Smoke test passed, recording results\\n"
+  printf "Smoke test passed, recording results at \'%s\'\\n" "$FILE_RESULT"
   printf "Smoke Test PASSED -> %s\\n" "$(date -u --iso-8601)" > "$FILE_RESULT"
 }
 

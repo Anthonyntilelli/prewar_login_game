@@ -2,7 +2,7 @@
 import random
 import math
 from typing import List, Tuple, Union, NamedTuple, Any
-from grid.settings import SettingGridDiff
+from grid.settings import SettingGrid
 from grid._components import Components
 
 # Black styling Preferred
@@ -45,7 +45,7 @@ class InteractiveCols:
         self._dud_pool: List[Tuple[str, Union[str, int]]] = [word_options.password]
         self._active_col_set: bool = False  # are active cols set
         self._found_duds: List[Tuple[int, int]] = [(-1, -1)]  # (col,row)
-        self._settings: SettingGridDiff = word_options.setting
+        self._settings: SettingGrid = word_options.setting
 
         dud_range: int = random.randint(tries + 1, tries * 2)
         # At least 2 from both zero and Low similarity

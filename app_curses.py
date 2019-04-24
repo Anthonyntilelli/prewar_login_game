@@ -1,23 +1,40 @@
-"""Pre war Login Curses Interface"""
+#!/usr/bin/env python
+"""Pre war Login Curses Interface."""
 import curses
 import argparse
-from typing import Any
+from sys import stderr
+from typing import Any, Tuple
 from english_words import english_words_lower_alpha_set as ewlaps  # type: ignore
-from grid.word_tools import WordsTools
-from grid.settings import DifficultyType
+from grid.settings import (
+    DEFAULT_EASY,
+    DEFAULT_ADVANCED,
+    DEFAULT_EXPERT,
+    DEFAULT_MASTER,
+    SettingGrid,
+)
 from grid.backend import Backend
 from grid.interface import Interface
 
 # Black styling Preferred
-# pylint: disable=c0330
+# pylint: disable=c0330, R0912
 
 
 def commands() -> Backend:
-    """Parses command line arguments and returns grid backend"""
-
+    """Parse command line arguments and returns grid."""
     parser = argparse.ArgumentParser(
         description="Python Game to Emulate Fallout 4 hacking Module",
         epilog="Disclaimer: Not made or endorsed by Bethesda (fan-made Game)",
+    )
+    help_action = """
+    Set Game Difficulty
+      easy - word size between 3 and 5
+      advance - word size between 6 and 8
+      expert - word size between 9 and 10
+      master - word size between 11 and 12
+    """
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument(
+        "action", choices=("easy", "advanced", "expert", "master"), help=help_action
     )
     parser.add_argument(
         "-t",
@@ -28,60 +45,33 @@ def commands() -> Backend:
         choices=range(3, 11),
     )
     parser.add_argument(
-        "-d",
-        "--difficulty",
+        "-s",
+        "--secret",
         help="increases difficulty by disabling secret chars.",
         action="store_false",
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "-e",
-        "--easy",
-        help="easy difficulty (word size between 3 and 5)",
-        action="store_true",
-    )
-    group.add_argument(
-        "-a",
-        "--advance",
-        help="advance difficulty (word size between 6 and 8)",
-        action="store_true",
-    )
-    group.add_argument(
-        "-E",
-        "--expert",
-        help="expert difficulty (word size between 9 and 10)",
-        action="store_true",
-    )
-    group.add_argument(
-        "-m",
-        "--master",
-        help="master difficulty (word size between 11 and 12)",
-        action="store_true",
-    )
     args = parser.parse_args()
-    if args.easy:
-        difficulty: DifficultyType = DifficultyType.EASY
-    elif args.advance:
-        difficulty = DifficultyType.ADVANCE
-    elif args.expert:
-        difficulty = DifficultyType.EXPERT
-    elif args.master:
-        difficulty = DifficultyType.MASTER
+    if args.action == "easy":
+        difficulty: SettingGrid = DEFAULT_EASY
+    elif args.action == "advanced":
+        difficulty = DEFAULT_ADVANCED
+    elif args.action == "expert":
+        difficulty = DEFAULT_EXPERT
+    elif args.action == "master":
+        difficulty = DEFAULT_MASTER
     else:
-        parser.error("Must select a difficulty")
-
-    settings = WordsTools()
-    running_setting = settings.load_settings_diff(difficulty)
-    return Backend(running_setting, ewlaps, args.tries, args.difficulty)
+        parser.error(f"Unknown action ({args.action})")
+    return Backend(difficulty, ewlaps, args.tries, args.secret)
 
 
-def main(stdscr: Any, grid: Backend) -> str:
+def main(stdscr: Any, grid: Backend) -> Tuple[str, int]:
     """
-    Main Game loop (call with curses.wrapper).
+    Set up Main loop and run main game loop.
 
+    Call this function 'curses.wrapper'.
     :param stdscr: Curses screen
     :param grid: game grid
-    :return: game outcome screen
+    :return: Game message and exit code
     """
     line_start: int = 4
     action: str = ""
@@ -92,11 +82,18 @@ def main(stdscr: Any, grid: Backend) -> str:
         curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     else:
-        return "E"
+        return "Terminal does not support Color", 4
 
-    selected = False
+    terminal_x: int = 1  # Must be a min of 54
+    terminal_y: int = 1  # Must be a min of 21
+    selected: bool = False
     while True:
+        if curses.is_term_resized(terminal_y, terminal_x):
+            terminal_y, terminal_x = stdscr.getmaxyx()
+            if terminal_x <= 54 or terminal_y <= 21:
+                return "The terminal is too narrow (min 54) or short (min 21)", 3
         stdscr.clear()
+
         stdscr.addstr(
             0, 0, "Welcome to ROBCO Industries (TM) TermLink", curses.color_pair(2)
         )
@@ -115,11 +112,12 @@ def main(stdscr: Any, grid: Backend) -> str:
         for i in range(line_start, grid.settings.NUM_OF_ROWS + line_start, 1):
             stdscr.addstr(i, 0, grid.full_row_str(i - line_start), curses.color_pair(2))
 
-        stdscr.move(player.line, player.place)  # Move cursor back to position
+        # Move cursor back to position
+        stdscr.move(player.line, player.place)
         key: str = stdscr.getkey()
         action = player.keyboard_input(key)
         if action == "Q":
-            return "Q"
+            return "Game Quit", 0
         if action == "S":
             selected = True
 
@@ -131,8 +129,10 @@ def main(stdscr: Any, grid: Backend) -> str:
                 not offset_local[0], offset_local[1], offset_local[2]
             )
             selected = False
-            if result in ("p", "l"):
-                return result
+            if result == "p":
+                return "Game Won: Password Found", 0
+            if result == "l":
+                return "Game Over: Attempts Exhausted", 0
             continue  # Ensure update after pressing enter
         else:
             grid.hover(not offset_local[0], offset_local[1], offset_local[2])
@@ -142,16 +142,10 @@ def main(stdscr: Any, grid: Backend) -> str:
 
 if __name__ == "__main__":
     grid_backend: Backend = commands()
-    GAME_OUTCOME = curses.wrapper(main, grid_backend)
-    if GAME_OUTCOME == "p":
-        print("game Won: Password Found")
-    elif GAME_OUTCOME == "l":
-        print("Game Over: Attempts Exhausted")
-    elif GAME_OUTCOME == "Q":
-        print("Game Quit")
-    elif GAME_OUTCOME == "E":
-        print("Terminal does not support Color")
+    MESSAGE, EXIT_CODE = curses.wrapper(main, grid_backend)
+    if EXIT_CODE != 0:  # Error
+        print(f"Error: {MESSAGE}", file=stderr)
     else:
-        raise ValueError(str(type(GAME_OUTCOME)))
-    print("Thank you for playing")
-    exit()
+        print(MESSAGE)
+        print("Thank you for playing!")
+    exit(EXIT_CODE)

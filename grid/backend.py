@@ -4,7 +4,7 @@ from typing import List, Union, Tuple
 from grid._components import Components
 from grid._interactive_cols import InteractiveCols
 from grid._non_interactive_cols import NonInteractiveCols
-from grid.settings import SettingGridDiff
+from grid.settings import SettingGrid
 
 # Black styling Preferred
 # pylint: disable=c0330
@@ -14,7 +14,7 @@ class Backend:
     """Backend - contains the parts needed for the grid and interactions."""
 
     def __init__(
-        self, settings: SettingGridDiff, word_list: List[str], tries: int, secret: bool
+        self, settings: SettingGrid, word_list: List[str], tries: int, secret: bool
     ):
         """
         Initialize Grid Backend.
@@ -27,7 +27,7 @@ class Backend:
         self._tries: int = tries
         self._tries_original: int = tries
         self._state: int = 0
-        self._settings: SettingGridDiff = settings
+        self._settings: SettingGrid = settings
         self._non_interactive: NonInteractiveCols = NonInteractiveCols(settings)
         self._interactive: InteractiveCols
 
@@ -56,7 +56,7 @@ class Backend:
         return self._state
 
     @property
-    def settings(self) -> SettingGridDiff:
+    def settings(self) -> SettingGrid:
         """
         Setttings used by grid backend.
 
