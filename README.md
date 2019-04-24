@@ -2,13 +2,13 @@
 
 ## Table of Contents
 
-1. [Description](#Description)
-2. [Parameters](#Parameters)
-3. [Examples](#Examples)
-4. [Exit-Status](#Exit-Status)
-5. [Requirements](#Requirements)
-6. [Installation](#Installation)
-7. [Authors](#Authors)
+1. [Description](#description)
+2. [Parameters](#parameters)
+3. [Examples](#examples)
+4. [Exit-Status](#exit-status)
+5. [Requirements](#requirements)
+6. [Installation](#installation)
+7. [Authors](#authors)
 
 ## Description
 
