@@ -3,36 +3,39 @@ from test.common import LIST_EXAMPLE, LIST_EXAMPLE_EASY
 import pytest  # type: ignore
 from english_words import english_words_lower_alpha_set as ewlaps
 import grid._components as gi_components
-from grid.settings import DifficultyType
-from grid.word_tools import WordsTools
+from grid.settings import (
+    DEFAULT_EASY,
+    SettingGrid,
+    easy_pass_pool,
+    advanced_pass_pool,
+    master_pass_pool,
+    FILLER_SYMBOLS,
+)
 
 # Protected access used to test functions
 # pylint: disable=W0212, W0621
 
 
 @pytest.fixture(scope="session")
-def settings_comp():
-    """Get setting files."""
-    settings = WordsTools()
-    return settings.load_settings_diff(DifficultyType.EASY)
-
-
-@pytest.fixture(scope="session")
 def bad_settings_comp():
     """Bad settings."""
-    settings = WordsTools("test/files/bad_setting.yml")
-    adv = settings.load_settings_diff(DifficultyType.ADVANCE)
-    esy = settings.load_settings_diff(DifficultyType.EASY)
-    mst = settings.load_settings_diff(DifficultyType.MASTER)
-    exp = settings.load_settings_diff(DifficultyType.EXPERT)
-    return adv, esy, mst, exp
+    zero_min = SettingGrid(
+        0, 8, 16, 14, 12, 6, 4096, 61430, 150, FILLER_SYMBOLS, advanced_pass_pool
+    )
+    reversed_min_max = SettingGrid(
+        5, 3, 16, 14, 12, 6, 4096, 61430, 150, FILLER_SYMBOLS, easy_pass_pool
+    )
+    invalid_max = SettingGrid(
+        11, 99, 16, 14, 12, 6, 4096, 61430, 150, FILLER_SYMBOLS, master_pass_pool
+    )
+    return zero_min, reversed_min_max, invalid_max
 
 
-def test_init(settings_comp):
+def test_init():
     """Test __init__."""
-    tester = gi_components.Components(LIST_EXAMPLE, settings_comp)
+    tester = gi_components.Components(LIST_EXAMPLE, DEFAULT_EASY)
     for word in tester._words_trimmed:  # ensure trimmed to correct size
-        assert settings_comp.MIN <= len(word) <= settings_comp.MAX
+        assert DEFAULT_EASY.MIN <= len(word) <= DEFAULT_EASY.MAX
     assert len(tester._words_trimmed) == len(LIST_EXAMPLE_EASY)
     assert "a" not in tester._words_trimmed
     assert "Supercalifragilisticexpialidocious" not in tester._words_trimmed
@@ -45,29 +48,26 @@ def test_init(settings_comp):
 
 def test_init_exception(bad_settings_comp):
     """Test __init__ raises exceptions."""
-    with pytest.raises(ValueError):
-        # ADVANCED
+    with pytest.raises(ValueError):  # zero_min
         gi_components.Components(LIST_EXAMPLE, bad_settings_comp[0])
-    with pytest.raises(ValueError):
-        # EASY
+    with pytest.raises(ValueError):  # reversed_min_max
         gi_components.Components(LIST_EXAMPLE, bad_settings_comp[1])
-    with pytest.raises(ValueError):
-        # MASTER
+    with pytest.raises(ValueError):  # invalid_max
         gi_components.Components(LIST_EXAMPLE, bad_settings_comp[2])
 
 
-def test_password(settings_comp):
+def test_password():
     """Test password."""
-    tester = gi_components.Components(ewlaps, settings_comp)
+    tester = gi_components.Components(ewlaps, DEFAULT_EASY)
     assert tester._password == tester.password
-    assert tester.password[0] in settings_comp.pass_pool
+    assert tester.password[0] in DEFAULT_EASY.pass_pool
     assert isinstance(tester.password, tuple)
     assert tester.password[1] == "p"
 
 
-def test_zero_duds(settings_comp):
+def test_zero_duds():
     """Test zero_duds."""
-    tester = gi_components.Components(ewlaps, settings_comp)
+    tester = gi_components.Components(ewlaps, DEFAULT_EASY)
     for zero_dud_entry, _ in tester.zero_duds:
         assert isinstance(zero_dud_entry, str)
         assert zero_dud_entry != tester.password[0]
@@ -77,9 +77,9 @@ def test_zero_duds(settings_comp):
             assert char != zero_dud_entry_lj[i]
 
 
-def test_similar_duds(settings_comp):
+def test_similar_duds():
     """Run test low/high similar duds to ensure correct between size."""
-    tester = tester = gi_components.Components(ewlaps, settings_comp)
+    tester = tester = gi_components.Components(ewlaps, DEFAULT_EASY)
     assert len(tester.low_similar_duds) + len(tester.high_similar_duds) >= 25
     # LOW
     for low in tester.low_similar_duds:
@@ -99,11 +99,11 @@ def test_similar_duds(settings_comp):
     assert tester.low_similar_duds[6][1] < tester.high_similar_duds[4][1]
 
 
-def test_secrets_list(settings_comp):
+def test_secrets_list():
     """Test secrets_list."""
-    tester = gi_components.Components(ewlaps, settings_comp)
+    tester = gi_components.Components(ewlaps, DEFAULT_EASY)
     s_value = tester.secrets_list
-    assert len(s_value) == settings_comp.NUM_OF_ROWS
+    assert len(s_value) == DEFAULT_EASY.NUM_OF_ROWS
     for secret_tup in s_value:
         value = secret_tup[0]
         assert secret_tup[1] == "s"
@@ -120,10 +120,10 @@ def test_secrets_list(settings_comp):
 
 
 # Private Method
-def test__set_duds_exception(bad_settings_comp):
+def test__set_duds_exception():
     """Test set_duds function."""
-    # EXPERT
-    tester = gi_components.Components(LIST_EXAMPLE, bad_settings_comp[3])
+    # valid
+    tester = gi_components.Components(LIST_EXAMPLE, DEFAULT_EASY)
     assert tester._words_trimmed != []
     with pytest.raises(RuntimeError):
         tester._set_duds()  # Not enough similar items

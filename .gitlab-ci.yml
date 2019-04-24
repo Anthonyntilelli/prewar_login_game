@@ -1,16 +1,10 @@
-#Based on python gitlab CI template
-image: python:latest
+# Based on python gitlab CI template
+image: python:3.7
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
-
-# Pip's cache doesn't store the python packages
-# https://pip.pypa.io/en/stable/reference/pip_install/#caching
-#
-# If you want to also cache the installed packages, you have to install
-# them in a virtualenv and cache it as well.
 
 cache:
   paths:
@@ -28,9 +22,9 @@ code_ style:
   script:
   - pip install -r dev-requirements.txt
   - black --check --exclude="venv|.tox" .
-  - find . -iname "*.py" | fgrep -v venv | fgrep -v tox  | xargs pylint --suggestion-mode=n
+  - find . -iname "*.py"  -not -path "./test/*" | grep -Ev "venv|tox"  | xargs pylint --suggestion-mode=n
   - pydocstyle grid/* -ve
-  - pydocstyle test/* -ve
+  - pydocstyle app_curses.py
   only:
   - merge_requests
   - master
@@ -41,7 +35,16 @@ static_type_check:
   - find . -type f -name "*.py" | grep -Ev "venv|tox|test" | xargs mypy --strict
   only:
   - merge_requests
-  - branch
+  - master
+
+code_style_for_tests:
+  script:
+  - pip install -r dev-requirements.txt
+  - find test/ -iname "*.py" | xargs pylint --suggestion-mode=n
+  - pydocstyle test/* -ve
+  only:
+  - merge_request
+  - branches
 
 test_3_6:
   image: python:3.6
@@ -54,11 +57,11 @@ test_3_6:
   - branches
 
 test_3_7:
-#  image: python:3.7  # NOTE: latest is currently 3.7
+  image: python:3.7
   script:
   - pip install tox -U
   - tox --version
-  - tox -e py37  # Possible failure when 3.8 is released
+  - tox -e py37
   only:
   - merge_request
   - branches
@@ -66,9 +69,9 @@ test_3_7:
 smoke_test:
   script:
   - printf "Check if Latest smoke test is same day as commit (run smoke_test.sh on failure)\\n"
-  - cat .smoke_test_results.txt
+  - cat test/smoke_test_results.txt
   - printf "Last git commit date (UTC) -> %s\\n" "$(git log -1 --format="%at" | xargs -I{} date -u -d @{} --iso-8601)"
-  - grep "Smoke Test PASSED -> $(git log -1 --format="%at" | xargs -I{} date -u -d @{} --iso-8601)" .smoke_test_results.txt
+  - grep "Smoke Test PASSED -> $(git log -1 --format="%at" | xargs -I{} date -u -d @{} --iso-8601)" test/smoke_test_results.txt
   only:
   - merge_request
   - master

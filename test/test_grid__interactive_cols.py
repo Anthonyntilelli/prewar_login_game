@@ -1,8 +1,7 @@
 """Interactive grid column testing with pytest."""
 import pytest  # type: ignore
 from english_words import english_words_lower_alpha_set as ewlaps
-from grid.word_tools import WordsTools
-from grid.settings import DifficultyType
+import grid.settings as gi_setting
 from grid._components import Components
 import grid._interactive_cols as gi_ic
 
@@ -11,37 +10,28 @@ import grid._interactive_cols as gi_ic
 # pylint: disable=W0212, W0621
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def comp_easy():
     """Get easy components."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.EASY)
-    data = Components(ewlaps, setting_diff)
-    return data
+    return Components(ewlaps, gi_setting.DEFAULT_EASY)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def comp_advance():
     """Get advance components."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.ADVANCE)
-    return Components(ewlaps, setting_diff)
+    return Components(ewlaps, gi_setting.DEFAULT_ADVANCED)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def comp_expert():
     """Get expert components."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.EXPERT)
-    return Components(ewlaps, setting_diff)
+    return Components(ewlaps, gi_setting.DEFAULT_EXPERT)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def comp_master():
     """Get master components."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.MASTER)
-    return Components(ewlaps, setting_diff)
+    return Components(ewlaps, gi_setting.DEFAULT_MASTER)
 
 
 @pytest.mark.parametrize("tries", [-1, 0, 1, 2])

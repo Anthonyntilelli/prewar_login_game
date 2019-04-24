@@ -2,8 +2,8 @@
 import random
 from math import floor
 from typing import List, Tuple, Dict
-from grid.settings import SettingGridDiff
-from grid.word_tools import WordsTools
+from grid.settings import SettingGrid
+from grid._word_tools import similarity_sort, trim
 
 # Black styling Preferred
 # pylint: disable=c0330
@@ -12,7 +12,7 @@ from grid.word_tools import WordsTools
 class Components:
     """Components - organizes in range words into password, zero duds, similar duds and secrets."""
 
-    def __init__(self, word_list: List[str], settings: SettingGridDiff) -> None:
+    def __init__(self, word_list: List[str], settings: SettingGrid) -> None:
         """
         Initialize the components based on set difficulty.
 
@@ -28,7 +28,7 @@ class Components:
         self._high_similar_duds: List[Tuple[str, int]] = []
         self._secrets_list: List[Tuple[str, str]] = []
         self._words_trimmed: List[str]
-        self._settings: SettingGridDiff = settings
+        self._settings: SettingGrid = settings
 
         minimum = settings.MIN
         maximum = settings.MAX
@@ -46,10 +46,10 @@ class Components:
             raise ValueError(
                 f"Password: ({self._password}) not in range (min: {minimum},  max:{maximum})"
             )
-        self._words_trimmed = list(WordsTools.trim(minimum, maximum, word_list))
+        self._words_trimmed = list(trim(minimum, maximum, word_list))
 
     @property
-    def setting(self) -> SettingGridDiff:
+    def setting(self) -> SettingGrid:
         """
         Setttings used for components.
 
@@ -139,27 +139,25 @@ class Components:
 
         low_sim = floor(len(self.password) / 2)
         random.shuffle(self._words_trimmed)
-        similarity_results: Dict[int, List[str]]
+        sim_results: Dict[int, List[str]]
         threshold: bool
-        similarity_results, threshold = WordsTools.similarity_sort(
-            self._words_trimmed, self.password[0]
-        )
+        sim_results, threshold = similarity_sort(self._words_trimmed, self.password[0])
         if not threshold:
             raise RuntimeError(f"Not enough duds found for password: {self.password}")
 
         # Setting up zero duds
-        zero_duds = similarity_results[0]
+        zero_duds = sim_results[0]
         for zdud in zero_duds[:25]:  # only need 25
             self._zero_duds.append((zdud, 0))
-        del similarity_results[0]  # remove zero
+        del sim_results[0]  # remove zero
         sim_num: int
-        for sim_num in similarity_results:
+        for sim_num in sim_results:
             if sim_num > low_sim:
-                high_similar_duds = similarity_results[sim_num]
+                high_similar_duds = sim_results[sim_num]
                 for hdud in high_similar_duds:
                     self._high_similar_duds.append((hdud, sim_num))
             else:
-                low_similar_duds = similarity_results[sim_num]
+                low_similar_duds = sim_results[sim_num]
                 for ldud in low_similar_duds:
                     self._low_similar_duds.append((ldud, sim_num))
 

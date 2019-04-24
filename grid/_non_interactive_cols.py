@@ -1,13 +1,13 @@
 """Non-Interactive Columns for the grid."""
 import random
 from typing import List, Tuple
-from grid.settings import SettingGridDiff
+from grid.settings import SettingGrid
 
 
 class NonInteractiveCols:
     """NonInteractiveCols - contains grid data the user does not interact with."""
 
-    def __init__(self, settings: SettingGridDiff) -> None:
+    def __init__(self, settings: SettingGrid) -> None:
         """
         Initialize Grid data to be used by property.
 
@@ -15,7 +15,7 @@ class NonInteractiveCols:
         """
         self._left_hex: Tuple[str, ...] = ("Pre", "Fill")
         self._right_hex: Tuple[str, ...] = ("Pre", "Fill")
-        self._settings: SettingGridDiff = settings
+        self._settings: SettingGrid = settings
         # Blanking feedback column
         self._feedback_col: List[str] = [
             " " * self._settings.FEEDBACK_LINE_SIZE

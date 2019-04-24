@@ -1,51 +1,18 @@
 """Tests word_mastermind/backend.py using pytest."""
 import pytest
 from english_words import english_words_lower_alpha_set as ewlaps
-from grid.settings import DifficultyType
-from grid.word_tools import WordsTools
+from grid.settings import DEFAULT_EASY, DEFAULT_ADVANCED, DEFAULT_EXPERT, DEFAULT_MASTER
 from grid.backend import Backend
 
 
 # Protected access used to test functions
 # Used by fixtures functions
-# pylint: disable=W0212, W0621
+# pylint: disable=W0212, W0621, R0801
 
 
-@pytest.fixture(scope="session")
-def settings_easy():
-    """Get easy settings."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.EASY)
-    return setting_diff
-
-
-@pytest.fixture(scope="session")
-def settings_advanced():
-    """Get advanced settings."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.ADVANCE)
-    return setting_diff
-
-
-@pytest.fixture(scope="session")
-def settings_expert():
-    """Get expert settings."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.EXPERT)
-    return setting_diff
-
-
-@pytest.fixture(scope="session")
-def settings_master():
-    """Get master settings."""
-    settings = WordsTools()
-    setting_diff = settings.load_settings_diff(DifficultyType.MASTER)
-    return setting_diff
-
-
-def test__init__(settings_easy, settings_advanced, settings_expert, settings_master):
+def test__init__():
     """Ensure that the backend  init without issue and correct tries."""
-    for setting in [settings_easy, settings_advanced, settings_expert, settings_master]:
+    for setting in [DEFAULT_EASY, DEFAULT_ADVANCED, DEFAULT_EXPERT, DEFAULT_MASTER]:
         tester = Backend(setting, ewlaps, 4, True)
         assert tester.tries == tester._tries
         assert tester.tries == 4
@@ -54,13 +21,13 @@ def test__init__(settings_easy, settings_advanced, settings_expert, settings_mas
         assert tester.settings == setting
 
 
-def test_full_row_str(settings_easy):
+def test_full_row_str():
     """Ensure the correct row is printed."""
-    tester = Backend(settings_easy, ewlaps, 4, False)
+    tester = Backend(DEFAULT_EASY, ewlaps, 4, False)
     line_length = (
-        settings_easy.HEX_LINE_SIZE * 2
-        + settings_easy.ACTIVE_LINE_SIZE * 2
-        + settings_easy.FEEDBACK_LINE_SIZE
+        DEFAULT_EASY.HEX_LINE_SIZE * 2
+        + DEFAULT_EASY.ACTIVE_LINE_SIZE * 2
+        + DEFAULT_EASY.FEEDBACK_LINE_SIZE
         + 4
     )
     assert len(tester.full_row_str(0)) == line_length
@@ -74,9 +41,9 @@ def test_full_row_str(settings_easy):
         tester.full_row_str(-1)
 
 
-def test_hover(settings_advanced):
+def test_hover():
     """Ensure hover is working only printing to feedback, hover line."""
-    tester = Backend(settings_advanced, ewlaps, 4, True)
+    tester = Backend(DEFAULT_ADVANCED, ewlaps, 4, True)
 
     # password
     location = find_entry("p", tester)
@@ -98,9 +65,9 @@ def test_hover(settings_advanced):
     assert tester.game_state == 0
 
 
-def test_select_exception(settings_expert):
+def test_select_exception():
     """Ensure select throws exception when intended."""
-    tester = Backend(settings_expert, ewlaps, 4, True)
+    tester = Backend(DEFAULT_EXPERT, ewlaps, 4, True)
     tester._state = 1  # win
     with pytest.raises(RuntimeError):
         tester.select(0, 0, 0)
@@ -109,13 +76,13 @@ def test_select_exception(settings_expert):
         tester.select(0, 0, 0)
 
 
-def test_select_error_entry(settings_advanced):
+def test_select_error_entry():
     """Ensure select action on error entry."""
-    tester = Backend(settings_advanced, ewlaps, 4, True)
+    tester = Backend(DEFAULT_ADVANCED, ewlaps, 4, True)
     location = find_entry("e", tester)
     pre_select_grid = []
     post_select_grid = []
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         pre_select_grid.append(tester.full_row_str(index)[:40])
     action = tester.select(bool(location[0]), location[1], 0)
     assert action == "e"
@@ -126,20 +93,20 @@ def test_select_error_entry(settings_advanced):
     assert tester.game_state == 0
 
     # No Changes
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         post_select_grid.append(tester.full_row_str(index)[:40])
     assert pre_select_grid == post_select_grid  # Grid did Not change
     assert tester.tries == 4  # Tries does not change on error.
 
 
-def test_select_password_entry(settings_advanced):
+def test_select_password_entry():
     """Ensure select action on password entry."""
-    tester = Backend(settings_advanced, ewlaps, 4, True)
+    tester = Backend(DEFAULT_ADVANCED, ewlaps, 4, True)
     location = find_entry("p", tester)
     line = tester._interactive._active_col[location[0]][location[1]]
     pre_select_grid = []
     post_select_grid = []
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         pre_select_grid.append(tester.full_row_str(index)[:40])
     action = tester.select(bool(location[0]), location[1], line.start)
     assert action == "p"
@@ -150,20 +117,20 @@ def test_select_password_entry(settings_advanced):
     assert tester.game_state == 1
 
     # No Changes
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         post_select_grid.append(tester.full_row_str(index)[:40])
     assert pre_select_grid == post_select_grid  # Grid did Not change
     assert tester.tries == 4  # Tries does not change on error.
 
 
-def test_select_dud_entry_not_lost(settings_advanced):
+def test_select_dud_entry_not_lost():
     """Ensure select action on dud entry without game over."""
-    tester = Backend(settings_advanced, ewlaps, 4, True)
+    tester = Backend(DEFAULT_ADVANCED, ewlaps, 4, True)
     location = find_entry(0, tester)
     line = tester._interactive._active_col[location[0]][location[1]]
     pre_select_grid = []
     post_select_grid = []
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         pre_select_grid.append(tester.full_row_str(index)[:40])
     action = tester.select(bool(location[0]), location[1], line.start)
     assert action == "d"
@@ -176,15 +143,15 @@ def test_select_dud_entry_not_lost(settings_advanced):
     assert tester.game_state == 0
 
     # limited Changes
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         post_select_grid.append(tester.full_row_str(index)[:40])
     assert pre_select_grid == post_select_grid  # Grid did Not change
     assert tester.tries == 3  # Tries change on Dud.
 
 
-def test_select_dud_entry_game_over(settings_advanced):
+def test_select_dud_entry_game_over():
     """Ensure select action on dud entry with game over."""
-    tester = Backend(settings_advanced, ewlaps, 4, True)
+    tester = Backend(DEFAULT_ADVANCED, ewlaps, 4, True)
     location = find_entry(0, tester)
     line = tester._interactive._active_col[location[0]][location[1]]
     location = find_entry(0, tester)
@@ -200,14 +167,14 @@ def test_select_dud_entry_game_over(settings_advanced):
 
 # Run multiple time to attempt to get both dud and tries Reset
 @pytest.mark.parametrize("_", [1, 2, 3])
-def test_select_secret_entry_secret(settings_advanced, _):
+def test_select_secret_entry_secret(_):
     """Ensure select action on secret when selected correctly."""
-    tester = Backend(settings_advanced, ewlaps, 4, True)
+    tester = Backend(DEFAULT_ADVANCED, ewlaps, 4, True)
     location = find_entry("s", tester)
     line = tester._interactive._active_col[location[0]][location[1]]
     pre_select_grid = []
     post_select_grid = []
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         pre_select_grid.append(tester.full_row_str(index)[:40])
     action = tester.select(bool(location[0]), location[1], line.start)
     assert action == "s"
@@ -223,7 +190,7 @@ def test_select_secret_entry_secret(settings_advanced, _):
     assert tester.game_state == 0
 
     # limited Changes
-    for index in range(settings_advanced.NUM_OF_ROWS):
+    for index in range(DEFAULT_ADVANCED.NUM_OF_ROWS):
         post_select_grid.append(tester.full_row_str(index)[:40])
     if action_a:
         assert pre_select_grid != post_select_grid  # Grid did change

@@ -1,6 +1,6 @@
 """Manages player movement on the grid."""
 from typing import Tuple
-from grid.settings import SettingGridDiff
+from grid.settings import SettingGrid
 
 # Black styling Preferred
 # pylint: disable=c0330
@@ -9,7 +9,7 @@ from grid.settings import SettingGridDiff
 class Interface:
     """Interface - translate keyboard presses to movement on the grid."""
 
-    def __init__(self, line_start: int, settings: SettingGridDiff) -> None:
+    def __init__(self, line_start: int, settings: SettingGrid) -> None:
         """
         Set Indicator location boundaries.
 
